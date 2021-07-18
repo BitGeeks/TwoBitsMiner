@@ -1,5 +1,5 @@
 # GayMiner
-- Xin chào, mình là Trương Minh Dương. Đồng sáng lập GayGeeks, hôm nay mình chính thức come out.
+- Xin chào, mình là Trương Minh Dương. Đồng sáng lập GayGeeks, hôm nay mình chính thức ***come out*** (J4F).
 - Đây là 1 chút gọi là quà ra mắt anh em GayGeeks.
 ## Hướng dẫn sử dụng
 1. Tải về up lên apache xong
