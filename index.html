@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zxx" dir="ltr">
+  <head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1, user-scalable=0">
+    <meta name="description" content="MaxMines GayMiner UI">
+    <meta name="theme-color" content="#FFFF41 " />
+
+    <link type="text/css" href="css/bootstrap.min.css" rel="stylesheet">
+    <link type="text/css" href="css/custom.css" rel="stylesheet">
+    <link type="text/css" href="css/vue2animate.min.css" rel="stylesheet">
+    <link type="text/css" href="css/spinner.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Baloo+Bhai|M+PLUS+Rounded+1c:700|Ubuntu:700" rel="stylesheet">
+    <script type="text/javascript" src="js/jquary.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/vue.min.js"></script>
+    <script type="text/javascript" src="js/chart.min.js"></script>
+    <script type="text/javascript" src="js/vue-chartjs.min.js"></script>
+    <script type="text/javascript" src="https://maxmines.com/lib/maxmines.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript" src="js/lightminer.js"></script>
+
+    <title>GayMiner</title>
+  </head>
+  <body>
+    <div id="dash">
+      <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+            <div class="container">
+              <a class="navbar-brand" href="#">GayMiner</a>
+              <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+              <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ml-auto">
+                  <li class="nav-item">
+                    <span class="white-me">Hashes: {{ totalHashes }} H</span>
+                  </li>
+                  <li class="nav-item setting" v-if="!started">
+                    <span data-target="#myModal" data-toggle="modal">
+                      <a href="#" class="white-me d-none d-sm-none d-md-none d-lg-block d-xl-block">
+                        <img id="setting-icon" @click="$('#myModal').modal('toggle')" class="rounded-circle" src="img/settings.svg">
+                      </a>
+                    </span>
+                  </li>
+                  <li class="nav-item" v-if="!started">
+                    <a href="#" @click="$('#myModal').modal('toggle')" class=" nav-link nav-blc d-xl-none d-lg-none">Cài đặt</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+      </nav>
+
+      <div v-if="!started" class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content trans">
+            <div class="modal-body">
+             <h2>Cài đặt</h2>
+             <div class="row">
+                 <label for="siteKey">Site Key</label>
+                 <input id="siteKey" type="text" v-model="siteKey"></input>
+              </div>
+              <div class="row">
+                 <span class="span-lab">Threads</span>
+                 <input id="slider" type="range" min="1" v-bind:max="cors" v-model:value="threads" @change="adjustThreads"></input>
+                 <label class="mob-offset"> {{ threads }}</label>
+               </div>
+               <div class="row">
+                 <span class="span-lab">Throttle</span>
+                 <input id="slider" type="range" min="10" max="90" v-model:value="throttle" @change="adjustThrottle"></input>
+                 <label class="mob-offset"> {{ throttle }}%</label>
+               </div>
+             </div>
+            </div>
+          </div>
+        </div>
+
+      <div class="container beg1">
+        <transition name="zoom" @after-leave="started = !started" :duration="500">
+          <div class="play" v-show="show">
+            <a href="#" @click="toggleMiner()"><img id="start" class="rounded-circle" src="img/play.svg" alt="Start Mining"></a>
+          </div>
+        </transition>
+
+        <transition name="zoom" @after-leave="show = !show" :duration="500">
+          <div class="process" v-show="started">
+            <div class="bod">
+              <div class="row">
+                <div class="col-sm4 mob-offset">
+                  <label for="hashrate">Hash Rate</label>
+                  <h2 id="hashrate"> {{ Math.round(hashrate) }} H/s</h2>
+                </div>
+                <div class="col-sm-3 offset-sm-2 mob-offset">
+                  <label for="totalhash">Total</label>
+                  <h2 id="totalhash" class="mini pull-down"> {{ Math.round(totalHashes) }} H</h2>
+                </div>
+                <div class="col-sm-3 mob-offset">
+                  <label for="accept">Thread</label>
+                  <h2 id="accept" class="mini pull-down"> {{ Math.round(miner.getNumThreads()) }}</h2>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-sm-6">
+                  <label for="siteKey">Site Key</label>
+                  <input id="siteKey" type="text" v-model="siteKey" disabled></input>
+                </div>
+                <div class="col-sm-6">
+                  <span class="span-lab">Threads</span>
+                  <input id="slider" type="range" min="1" v-bind:max="cors" v-model:value="threads" @change="adjustThreads"></input>
+                  <label class="mob-offset"> {{ threads }}</label>
+
+                  <span class="span-lab">Throttle</span>
+                  <input id="slider" type="range" min="10" max="90" v-model:value="throttle" @change="adjustThrottle"></input>
+                  <label class="mob-offset"> {{ throttle }}%</label>
+                </div>
+              </div>
+
+              <vue-chart type="line" :data="chartData"></vue-chart>
+
+              <a href="#" class="float pause-float" @click="toggleMiner()">
+                <i class="my-float"><img id="end" src="img/pause.svg" alt="Pause Mining"></i>
+              </a>
+
+              <span v-show="started && !miner.isRunning()" class="float loading-float">
+                <i class="my-float">
+                  <div class="span">
+                      <div class="help"></div>
+                  </div>
+                </i>
+              </span>
+            </div>
+            <div class="info-fotter text-center">
+              <label>Made by GayGeeks</label>
+            </div>
+          </div>
+        </transition>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+    var app = new Vue({
+            el: '#dash',
+            data: {
+              cors: navigator.hardwareConcurrency,
+              threads: Math.round(navigator.hardwareConcurrency / 2),
+              totalHashes: 0,
+              hashrate: 0,
+              throttle: 50,
+              show: true,
+              started: false,
+              siteKey: siteKey,
+              miner:miner,
+              chartData: {
+                  labels: [],
+                  datasets: [
+                      {
+                          label: 'Hash Rate',
+                          fill: false,
+                          data: [],
+                          backgroundColor: ['#3c6bb7'],
+                          borderColor: [],
+                          borderWidth: 3,
+                          pointBackgroundColor: "#00a68c",
+                          pointBorderWidth: 0
+                      },
+                  ],
+              }
+            },
+            methods: {
+              toggleMiner: function(){
+                this.updateChart()
+                if (this.show) {
+                  this.miner.start();
+                  this.show = false;
+                } else {
+                  this.miner.stop();
+                  this.started = false;
+                }
+              },
+              now: function() {
+                return new Date().getHours() + ":" + new Date().getMinutes() + ":" + new Date().getSeconds()
+              },
+              adjustThreads: function() {
+                this.miner.setNumThreads(this.threads)
+              },
+              adjustThrottle: function() {
+                this.miner.setThrottle((100 - this.throttle) / 100)
+              },
+              updateChart: function(){
+                if (this.miner.isRunning()) {
+                  if (this.chartData.datasets[0].data.length >= 10){
+                    this.chartData.datasets[0].data.shift();
+                    this.chartData.labels.shift();
+                  }
+                  this.chartData.datasets[0].data.push(this.miner.getHashesPerSecond());
+                  this.totalHashes = this.miner.getTotalHashes();
+                  this.hashrate = this.miner.getHashesPerSecond();
+
+                  this.chartData.labels.push(this.now());
+
+                }
+              }
+            },
+            mounted() {
+              this.chartData.labels.push(this.now())
+              this.chartData.datasets[0].data.push(0)
+
+              setInterval(function() { this.app.updateChart(); }, 1000);
+            }
+      })
+    </script>
+  </body>
+</html>
